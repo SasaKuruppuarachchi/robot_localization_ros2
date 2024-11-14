@@ -22,14 +22,29 @@ from launch.substitutions import EnvironmentVariable
 import pathlib
 import launch.actions
 from launch.actions import DeclareLaunchArgument
+from launch_ros.actions import Node
 
 def generate_launch_description():
-    return LaunchDescription([
-        launch_ros.actions.Node(
-            package='robot_localization',
-            executable='ukf_node',
-            name='ukf_filter_node',
-            output='screen',
-            parameters=[os.path.join(get_package_share_directory("robot_localization"), 'params', 'ukf.yaml')],
-           ),
-])
+    ukf_node = Node(
+        package='robot_localization',
+        executable='ukf_node',
+        name='ukf_filter_node',
+        output='screen',
+        parameters=[os.path.join(get_package_share_directory("robot_localization"), 'params', 'ukf_agipix.yaml')],
+    )
+    odom_to_path = Node(
+        package="robot_localization",
+        executable="odom_to_path_node.py",
+        name="odom_to_path_ekf",
+        output={"both": {"screen", "log", "own_log"}},
+        parameters=[],
+    )
+    publish_to_px4_node = Node(
+        package="robot_localization",
+        executable="publish_to_px4_node.py",
+        name="publish_to_px4_ekf",
+        output={"both": {"screen", "log", "own_log"}},
+        parameters=[],
+    )
+    return LaunchDescription([ukf_node,odom_to_path,publish_to_px4_node])
+

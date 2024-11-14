@@ -8,7 +8,7 @@ from rclpy.qos import qos_profile_sensor_data
 
 class PX4IMUNode(Node):
     def __init__(self):
-        super().__init__('px4_imu_node')
+        super().__init__('px4_imu_node_ekf')
         self.subscription = self.create_subscription(
             SensorCombined,
             '/fmu/out/sensor_combined',

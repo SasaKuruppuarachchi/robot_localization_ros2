@@ -353,7 +353,7 @@ install(DIRECTORY
 install(PROGRAMS
   odom_transformer/px4_imu_node.py
   odom_transformer/odom_to_path_node.py
-  odom_transformer/transformer_node.py
+  odom_transformer/publish_to_px4_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

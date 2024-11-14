@@ -10,12 +10,12 @@ import tf2_ros
 
 class OdometryToPath(Node):
     def __init__(self):
-        super().__init__('odom_to_path_node')
+        super().__init__('odom_to_path_node_ekf')
         print("pubing_start")
         
-        self.pub_tf = True
-        self.topic_out = '/drone0/odom_base'
-        self.path_out = '/drone0/path_base'
+        self.pub_tf = False
+        self.topic_out = '/odometry/filtered'
+        self.path_out = '/drone0/path_filtered'
         self.parent_frame = 'drone0/map'
         if self.pub_tf: self.new_frame = 'odom_base_link'
         
