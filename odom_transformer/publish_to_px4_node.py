@@ -76,13 +76,14 @@ class VisualInertialOdometryPublisher(Node):
         # Set the orientation information
         orientation = msg.pose.pose.orientation
         original_quaternion = [orientation.x, orientation.y, orientation.z, orientation.w]
-
-        rotated_quaternion = R.from_quat(self.rotation_quaternion) * R.from_quat(original_quaternion)
+        
+        rotation_quaternion = R.from_euler('x', 180, degrees=True).as_quat()
+        rotated_quaternion = R.from_quat(rotation_quaternion) * R.from_quat(original_quaternion)
         rotated_quat = rotated_quaternion.as_quat()
-        vehicle_odometry_msg.q[0] = rotated_quaternion[0]
-        vehicle_odometry_msg.q[1] = rotated_quaternion[1]
-        vehicle_odometry_msg.q[2] = rotated_quaternion[2]
-        vehicle_odometry_msg.q[3] = rotated_quaternion[3]
+        vehicle_odometry_msg.q[0] = rotated_quat[0]
+        vehicle_odometry_msg.q[1] = rotated_quat[1]
+        vehicle_odometry_msg.q[2] = rotated_quat[2]
+        vehicle_odometry_msg.q[3] = rotated_quat[3]
         
         # set variences
         vehicle_odometry_msg.position_variance = [msg.pose.covariance[0],msg.pose.covariance[7],msg.pose.covariance[14]]
