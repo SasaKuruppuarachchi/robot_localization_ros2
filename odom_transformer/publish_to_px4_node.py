@@ -12,11 +12,12 @@ from rclpy.executors import MultiThreadedExecutor
 
 from scipy.spatial.transform import Rotation as R
 import numpy as np
+from threading import Lock
 
 class VisualInertialOdometryPublisher(Node):
     def __init__(self):
         super().__init__('publish_to_px4_ekf')
-        self.topic_out = '/odometry/filtered'
+        self.topic_out = '/Odometry' #'/odometry/filtered'#'/drone0/odom_base'#
         # Quaternion for 180-degree rotation around the X-axis
         self.rotation_quaternion = R.from_euler('x', 180, degrees=True).as_quat()
         self.odometry_publisher_ = self.create_publisher(VehicleOdometry, '/fmu/in/vehicle_visual_odometry', 10)
@@ -24,10 +25,14 @@ class VisualInertialOdometryPublisher(Node):
             Odometry,
             self.topic_out,
             self.odometry_callback,
-            qos_profile=qos_profile_sensor_data
+            10
         )
+        self.px4_msg = VehicleOdometry()
+        self.pub_counter = -1
+        self.do_super_sample = True
+        self.lock = Lock()
 
-        self.timer = self.create_timer(10, self.timer_callback)  # Timer callback every 10 seconds
+        if self.do_super_sample: self.timer = self.create_timer(0.05, self.timer_callback)  # Timer callback every 10 seconds
         
     def odometry_callback(self, msg):
         vehicle_odometry_msg = VehicleOdometry()
@@ -91,10 +96,21 @@ class VisualInertialOdometryPublisher(Node):
         vehicle_odometry_msg.velocity_variance = [msg.twist.covariance[0],msg.twist.covariance[7],msg.twist.covariance[14]]
 
         # Publish the vehicle odometry message
-        self.odometry_publisher_.publish(vehicle_odometry_msg)
+        if not self.do_super_sample: 
+            self.odometry_publisher_.publish(vehicle_odometry_msg)
+        else :
+            with self.lock:
+                self.px4_msg = vehicle_odometry_msg
+                self.pub_counter = 0
 
     def timer_callback(self):
-        self.get_logger().info('Publishing filtered odometry to px4')
+        with self.lock:
+            if self.px4_msg is not None:
+                # Perform minimal processing here
+                self.odometry_publisher_.publish(self.px4_msg)
+                self.pub_counter += 1
+            else:
+                self.get_logger().warn('px4_msg is None in timer_callback')
 
 
 def main(args=None):

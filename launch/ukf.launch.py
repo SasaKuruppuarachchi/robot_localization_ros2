@@ -46,5 +46,5 @@ def generate_launch_description():
         output={"both": {"screen", "log", "own_log"}},
         parameters=[],
     )
-    return LaunchDescription([ukf_node,odom_to_path,publish_to_px4_node])
+    return LaunchDescription([publish_to_px4_node])
 
